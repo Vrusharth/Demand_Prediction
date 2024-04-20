@@ -6,6 +6,7 @@ from prophet import Prophet
 def make_predictions(df, start_date, end_date):
     
     unique_products = df['Category'].unique()
+    results = {}
     for category in unique_products:
         total_sum = 0
         selected_df = df[df['Category'] == category]
@@ -25,17 +26,26 @@ def make_predictions(df, start_date, end_date):
         total_sum += forecast_filtered['yhat'].sum()
         st.write(category +" Demand !")
         st.write(total_sum)
-        
-            
 
-        fig=m.plot(forecast)
+        # Store the result in the dictionary
+        results[category] = total_sum
+        
+        fig=m.plot_components(forecast)
+        fig1 = m.plot(forecast)
+
+
         st.pyplot(fig)
+        st.pyplot(fig1)
+
+    sorted_results = dict(sorted(results.items(), key=lambda x: x[1], reverse=True))
+    top_3 = list(sorted_results.keys())[:3]
+    st.write("Top 3 Categories:")
+    for i, category in enumerate(top_3):
+        st.write(f"{i+1}. {category}: {sorted_results[category]}")
+        
         
     
-    
-
-# Set up Streamlit app
-st.title('Sales Prediction App')
+st.title('Demand Prediction App')
 
 # File uploader for the sales data
 uploaded_file = st.file_uploader("Upload CSV file", type=['csv'])
@@ -48,5 +58,5 @@ if uploaded_file is not None:
 
     # Button to trigger predictions
     if st.button('Predict'):
-        total_sum = make_predictions(df, start_date, end_date)
-        st.write("Total Sales Prediction:", total_sum)
+        make_predictions(df, start_date, end_date)
+        #st.write("Total Sales Prediction:", total_sum)
